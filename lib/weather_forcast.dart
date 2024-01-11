@@ -5,7 +5,10 @@ class WeatherForcast extends StatelessWidget {
   final IconData icon;
   final String temperature;
   const WeatherForcast(
-      {required this.time, required this.icon, required this.temperature});
+      {super.key,
+      required this.time,
+      required this.icon,
+      required this.temperature});
   @override
   Widget build(BuildContext context) {
     return SizedBox(

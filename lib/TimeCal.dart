@@ -1,7 +1,13 @@
+import 'package:intl/intl.dart';
+
 class TimeCalculation {
-  DateTime calculateTime(double data) {
-    int convertedData = data.toInt();
-    DateTime dateTimeValue = DateTime.fromMillisecondsSinceEpoch(convertedData);
-    return dateTimeValue;
+  String convertMillisecondsToDateTime(double milliseconds) {
+    int convertedMilliseconds = milliseconds.toInt() * 1000;
+    DateTime dateTimeValue =
+        DateTime.fromMillisecondsSinceEpoch(convertedMilliseconds);
+
+    String formatedDateTime = DateFormat("HH:mm").format(dateTimeValue);
+
+    return formatedDateTime;
   }
 }

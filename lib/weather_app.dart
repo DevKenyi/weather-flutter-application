@@ -1,10 +1,12 @@
 import 'dart:convert';
+import 'dart:ffi';
 import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:weather_app/HourlyWeather%20.dart';
+import 'package:weather_app/TimeCal.dart';
 import 'package:weather_app/secretKey.dart';
 import 'package:weather_app/weather_forcast.dart';
 import 'package:http/http.dart' as http;
@@ -29,13 +31,11 @@ class _WeatherAppState extends State<WeatherApp> {
     const String path = "/data/2.5/forecast?q=$cityName,&APPID=$openApiKey";
 
     try {
-      final response = await http.get(Uri.parse(
-          "http://api.openweathermap.org/data/2.5/forecast?q=Nigeria,abuja&APPID=baf1a40dd98c523ea327c2edadb7c604"));
+      final response = await http.get(Uri.parse("$baseUrl/$path"));
       final data = jsonDecode(response.body);
       if (data['cod'] != '200') {
-        if (kDebugMode) {
-          print(data);
-        }
+        print("data here  for deb $data");
+
         throw Exception("Unexpected error occured");
       }
       return data;
@@ -76,13 +76,45 @@ class _WeatherAppState extends State<WeatherApp> {
           }
 
           final data = snapshot.data!;
+          //print("find check data here  $data");
 
           final currentTempDataInKelvin = data["list"][0]["main"]["temp"];
           final tempInCensius = currentTempDataInKelvin - 273.15;
 
+          final humidiy = data["list"][0]["main"]["humidity"].toString();
+
+          final pressure = data["list"][0]["main"]["pressure"].toString();
+
+          final windSpeed = data["list"][0]["wind"]["speed"];
+          print("wind speed here $windSpeed");
+
           //geting the data for weather e.g raining, cloudy or sunny
 
           final weatherType = data["list"][0]["weather"][0]["main"];
+
+          //iterating to get values such as time and temperatures at varying times
+
+          Map<String, dynamic> mappedData = data;
+
+          List<dynamic> listData = mappedData["list"];
+          List<Widget> weatherCards = [];
+
+          for (var item in listData) {
+            //converting to readable time date object
+            int timeData = item["dt"];
+            double temp = item["main"]["temp"] - 273.15;
+
+            String currentTemp = temp.toStringAsFixed(1);
+
+            var timeCal = TimeCalculation();
+            var tm = timeCal.convertMillisecondsToDateTime(timeData.toDouble());
+            WeatherForcast weatherForcast = WeatherForcast(
+                time: tm,
+                icon: Icons.cloud_circle_rounded,
+                temperature: "$currentTemp°C");
+
+            weatherCards.add(weatherForcast);
+          }
 
           return Padding(
             padding: const EdgeInsets.all(16.0),
@@ -139,21 +171,11 @@ class _WeatherAppState extends State<WeatherApp> {
                   "Weather Forecast",
                   style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
                 ),
-                const SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      WeatherForcast(
-                          time: "9:00", icon: Icons.cloud, temperature: "308"),
-                      WeatherForcast(
-                          time: "16:00", icon: Icons.cloud, temperature: "108"),
-                      WeatherForcast(
-                          time: "17:00", icon: Icons.cloud, temperature: "208"),
-                      WeatherForcast(
-                          time: "16:00", icon: Icons.cloud, temperature: "308"),
-                      WeatherForcast(
-                          time: "16:00", icon: Icons.cloud, temperature: "308")
-                    ],
+                SizedBox(
+                  height: 120,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    children: weatherCards,
                   ),
                 ),
                 const SizedBox(
@@ -166,23 +188,22 @@ class _WeatherAppState extends State<WeatherApp> {
                 const SizedBox(
                   height: 12,
                 ),
-                const Row(
+                Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     HourlyWeather(
                       icon: Icons.water_drop_rounded,
                       text: "Humitity",
-                      value: "90",
+                      value: humidiy,
                     ),
                     HourlyWeather(
-                      icon: Icons.air_outlined,
-                      text: "Wind Speed",
-                      value: "7.5",
-                    ),
+                        icon: Icons.air_outlined,
+                        text: "Wind Speed",
+                        value: windSpeed.toString()),
                     HourlyWeather(
                       icon: Icons.beach_access_outlined,
                       text: "Pressure",
-                      value: "1000",
+                      value: pressure,
                     )
                   ],
                 )
