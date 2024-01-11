@@ -91,6 +91,7 @@ class _WeatherAppState extends State<WeatherApp> {
           //geting the data for weather e.g raining, cloudy or sunny
 
           final weatherType = data["list"][0]["weather"][0]["main"];
+          print("Weather type $weatherType");
 
           //iterating to get values such as time and temperatures at varying times
 
@@ -145,9 +146,9 @@ class _WeatherAppState extends State<WeatherApp> {
                                           fontWeight: FontWeight.bold),
                                     ),
                                     Icon(
-                                      (weatherType == "Clouds " ||
+                                      (weatherType == "Clouds" ||
                                               weatherType == "Rain"
-                                          ? Icons.cloud
+                                          ? Icons.cloud_circle_rounded
                                           : Icons.sunny),
                                       size: 70,
                                     ),
